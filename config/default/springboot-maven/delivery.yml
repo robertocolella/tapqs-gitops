@@ -1,0 +1,77 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: springboot-maven
+  annotations:
+    ootb.apps.tanzu.vmware.com/servicebinding-workload: "true"
+    ootb.apps.tanzu.vmware.com/apidescriptor-ref: "true"
+    kapp.k14s.io/change-rule: upsert after upserting servicebinding.io/ServiceBindings
+  labels:
+    app.kubernetes.io/part-of: springboot-maven
+    apps.tanzu.vmware.com/has-tests: "true"
+    apps.tanzu.vmware.com/workload-type: web
+    kapp.k14s.io/app: "1685891931235409452"
+    kapp.k14s.io/association: v1.f4dba6a55742fd14ba97c3851bd8a650
+    app.kubernetes.io/component: run
+    carto.run/workload-name: springboot-maven
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        boot.spring.io/version: 2.7.4
+        conventions.carto.run/applied-conventions: |-
+          appliveview-sample/app-live-view-appflavour-check
+          spring-boot-convention/auto-configure-actuators-check
+          spring-boot-convention/spring-boot
+          spring-boot-convention/spring-boot-graceful-shutdown
+          spring-boot-convention/spring-boot-web
+          spring-boot-convention/spring-boot-actuator
+          spring-boot-convention/spring-boot-actuator-probes
+          spring-boot-convention/app-live-view-appflavour-check
+          spring-boot-convention/app-live-view-connector-boot
+          spring-boot-convention/app-live-view-appflavours-boot
+        developer.conventions/target-containers: workload
+        kapp.k14s.io/identity: v1;default/carto.run/Workload/springboot-maven;carto.run/v1alpha1
+        kapp.k14s.io/original: '{"apiVersion":"carto.run/v1alpha1","kind":"Workload","metadata":{"labels":{"app.kubernetes.io/part-of":"springboot-maven","apps.tanzu.vmware.com/has-tests":"true","apps.tanzu.vmware.com/workload-type":"web","kapp.k14s.io/app":"1685891931235409452","kapp.k14s.io/association":"v1.f4dba6a55742fd14ba97c3851bd8a650"},"name":"springboot-maven","namespace":"default"},"spec":{"build":{"env":[{"name":"BP_JVM_VERSION","value":"17"},{"name":"BP_SPRING_CLOUD_BINDINGS_DISABLED","value":"true"}]},"params":[{"name":"annotations","value":{"autoscaling.knative.dev/minScale":"1"}},{"name":"testing_pipeline_matching_labels","value":{"apps.tanzu.vmware.com/language":"java","apps.tanzu.vmware.com/pipeline":"test"}},{"name":"testing_pipeline_params","value":{"source-sub-path":"."}},{"name":"gitops_ssh_secret","value":"git-secret"}],"source":{"git":{"ref":{"branch":"main"},"url":"https://github.com/robertocolella/springboot-maven"}}}}'
+        kapp.k14s.io/original-diff-md5: c6e94dc94aed3401b5d0f26ed6c0bff3
+      labels:
+        app.kubernetes.io/component: run
+        app.kubernetes.io/part-of: springboot-maven
+        apps.tanzu.vmware.com/auto-configure-actuators: "false"
+        apps.tanzu.vmware.com/has-tests: "true"
+        apps.tanzu.vmware.com/workload-type: web
+        carto.run/workload-name: springboot-maven
+        conventions.carto.run/framework: spring-boot
+        kapp.k14s.io/app: "1685891931235409452"
+        kapp.k14s.io/association: v1.f4dba6a55742fd14ba97c3851bd8a650
+        tanzu.app.live.view: "true"
+        tanzu.app.live.view.application.actuator.path: actuator
+        tanzu.app.live.view.application.actuator.port: "8080"
+        tanzu.app.live.view.application.flavours: spring-boot
+        tanzu.app.live.view.application.name: springboot-maven
+    spec:
+      containers:
+      - env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Dmanagement.endpoint.health.probes.add-additional-paths="true" -Dmanagement.health.probes.enabled="true" -Dserver.port="8080" -Dserver.shutdown.grace-period="24s"
+        image: colellar.azurecr.io/tap/supplychain/springboot-maven-default@sha256:ea84219cdb450faa7cb873224b645b7085c1817ad3aabb5cfd1b0ac974477d0d
+        livenessProbe:
+          httpGet:
+            path: /livez
+            port: 8080
+            scheme: HTTP
+        name: workload
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8080
+            scheme: HTTP
+        resources: {}
+        securityContext:
+          runAsUser: 1000
+      serviceAccountName: default
+
